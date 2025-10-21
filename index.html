@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Password Toolbox</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0b1220" />
+  <style>
+    :root{
+      --bg:#006989;
+      --card:#1c9ecd;
+      --muted:#a9c0d9;
+      --accent:#d578df;
+      --good:#2ecc71;
+      --warn:#f1c40f;
+      --bad:#e74c3c;
+      font-family:Inter,system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      background:linear-gradient(180deg,#01162c,#012139);
+      color:#e6eef8;
+    }
+
+    .wrap{max-width:960px;margin:28px auto;padding:20px;box-sizing:border-box}
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:18px;
+      border-radius:12px;
+      box-shadow:0 6px 20px rgba(3,7,18,0.6);
+    }
+
+    h1{margin:0 0 6px;font-size:20px;color:var(--accent);}
+    p.lead{margin:0 0 16px;color:var(--muted);}
+
+    .row{display:flex;gap:18px;flex-wrap:wrap}
+    .col{flex:1 1 320px;min-width:280px}
+
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type="text"], input[type="number"], select {
+      width:100%;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.2);
+      background-color: #0f1a2b;
+      color: #e6eef8;
+      box-sizing:border-box;
+      appearance: none;
+    }
+
+    .controls{display:flex;gap:8px;margin-top:10px}
+    button{background:var(--accent);border:none;color:white;padding:9px 12px;border-radius:8px;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+
+    .meter{height:12px;border-radius:999px;background:linear-gradient(90deg,var(--bg),var(--card));overflow:hidden;margin:12px 0}
+    .meter > i{display:block;height:100%;width:0%;transition:width 300ms ease}
+
+    .meta{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-top:8px}
+    .list{margin-top:12px}
+    .list li{margin-bottom:6px}
+    .hint{color:var(--muted);font-size:13px;margin-top:12px}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:12px}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    .center{display:flex;gap:8px;align-items:center}
+    .row-2 {display:flex; gap:12px; margin-top:12px; flex-wrap:wrap}
+    .card-inner {padding:12px; border-radius:8px; background: rgba(255,255,255,0.02)}
+
+    @media (max-width:640px){.row{flex-direction:column}}
+    code{background:rgba(255,255,255,0.02);padding:2px 6px;border-radius:6px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Password Toolbox</h1>
+      <p class="lead">Privacy-first single-page toolbox. Installable PWA (runs offline) <a href="privacy.md" style="color:var(--muted)">Privacy details</a>.</p>
+
+      <div class="row">
+        <div class="col">
+          <div class="card-inner">
+            <h3 style="margin-top:0">Secure Generator</h3>
+            <label for="mode">Mode</label>
+            <select id="mode">
+              <option value="chars">Random characters</option>
+              <option value="words">Passphrase</option>
+            </select>
+
+            <div class="row-2">
+              <div style="flex:1">
+                <label for="length">Length / Words</label>
+                <input id="length" type="number" min="4" max="64" value="16" />
+              </div>
+              <div style="width:160px;">
+                <label for="symbols">Include symbols</label>
+                <select id="symbols"><option value="1">Yes</option><option value="0">No</option></select>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button id="generateBtn">Generate</button>
+              <button id="copyGen" class="ghost">Copy</button>
+              <button id="downloadZip" class="ghost">Download ZIP</button>
+            </div>
+
+            <label style="margin-top:12px">Generated output</label>
+            <input id="generated" type="text" readonly />
+
+            <div class="hint">(Tip: Click Generate then use the entropy & guess-time section to understand strength)</div>
+          </div>
+
+          <div class="card-inner" style="margin-top:12px">
+            <h3 style="margin:0">Example-based Strength Demo</h3>
+            <label for="exampleInput">Type a safe example (do not use real secrets)</label>
+            <input id="exampleInput" type="text" placeholder="e.g., CorrectHorseBatteryStaple" />
+            <div class="controls" style="margin-top:8px"><button id="checkBtn">Check example</button><button id="clearExample" class="ghost">Clear</button></div>
+
+            <div class="meter" aria-hidden="true"><i id="meterBar"></i></div>
+            <div class="meta">
+              <div class="badge" id="ratingBadge">No input</div>
+              <div id="entropy">Entropy: — bits</div>
+              <div id="timeToCrack">Guess time: —</div>
+            </div>
+            <div class="list">
+              <strong>Feedback:</strong>
+              <ul id="feedbackList"><li class="hint">Enter an example and press Check.</li></ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card-inner">
+            <h3 style="margin-top:0">Entropy & Guess-time Calculator</h3>
+            <label for="assumedLen">Assumed length</label>
+            <input id="assumedLen" type="number" value="12" min="4" max="128" />
+            <label for="charset">Character set (choose one)</label>
+            <select id="charset">
+              <option value="26">Lowercase (26)</option>
+              <option value="52">Lower + Upper (52)</option>
+              <option value="62">Letters + digits (62)</option>
+              <option value="95">Printable ASCII (95)</option>
+            </select>
+            <div style="margin-top:10px" class="controls">
+              <button id="calcBtn">Calculate entropy</button>
+              <button id="copyCalc" class="ghost">Copy values</button>
+            </div>
+            <div style="margin-top:10px" id="calcResult" class="hint">Entropy: — bits / Guess-time: —</div>
+            <div style="margin-top:12px;color:var(--muted);font-size:13px">
+              <strong>About guess-time</strong>
+              <p class="hint">Guess times are theoretical and depend on attacker model. Use for comparison, not absolute safety guarantees.</p>
+            </div>
+          </div>
+
+          <div class="card-inner" style="margin-top:12px">
+            <h3 style="margin-top:0">Install (Offline)</h3>
+            <p class="hint">This is a PWA. To install: open in Chrome/Edge/Firefox (supported), then use browser "Install app" option or add to home screen. The app caches itself for offline use.</p>
+            <p class="hint">You can also click "Download ZIP" to get a snapshot you can host locally.</p>
+            <div style="margin-top:8px" class="controls">
+              <button id="installBtn" class="ghost">Install (browser prompt)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div class="center">
+          <span>Open-source — deploy to GitHub Pages</span>
+          <span style="margin-left:auto" class="hint">Built for privacy</span>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- zxcvbn from CDN (client-side) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" crossorigin="anonymous"></script>
+
+  <script>
+  // Utilities
+  const $ = id => document.getElementById(id);
+
+  // Generator config
+  const wordlist = ["apple","river","stone","correct","horse","battery","staple","moon","river","sun","cloud","desk","keyboard","green","blue","mountain","paper","pencil","orchid","lizard","coffee","silver","gold","anchor","bridge"];
+  const symbols = '!@#$%^&*()-_=+[]{}<>?';
+
+  // PWA install handling
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; $('installBtn').style.display = 'inline-block'; });
+
+  $('installBtn').addEventListener('click', async () => {
+    if (!deferredPrompt) return alert('Install not available from this browser right now.');
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    $('installBtn').style.display = 'none';
+  });
+
+  function getRandomChars(len, withSymbols=true) {
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' + (withSymbols ? symbols : '');
+    const arr = new Uint32Array(len);
+    crypto.getRandomValues(arr);
+    let out = '';
+    for (let i = 0; i < len; i++) out += charset[arr[i] % charset.length];
+    return out;
+  }
+
+  function getRandomWords(count) {
+    const arr = new Uint32Array(count);
+    crypto.getRandomValues(arr);
+    let out = [];
+    for (let i = 0; i < count; i++) out.push(wordlist[arr[i] % wordlist.length]);
+    return out.join('-');
+  }
+
+  // Generate
+  $('generateBtn').addEventListener('click', () => {
+    const mode = $('mode').value;
+    const len = Math.max(4, Math.min(64, parseInt($('length').value) || 16));
+    const withSym = $('symbols').value === '1';
+    let out = '';
+    if (mode === 'chars') out = getRandomChars(len, withSym);
+    else out = getRandomWords(len);
+    $('generated').value = out;
+  });
+
+  // Copy generated
+  $('copyGen').addEventListener('click', async () => {
+    const t = $('generated').value;
+    if (!t) return alert('Nothing to copy, generate first.');
+    try { await navigator.clipboard.writeText(t); alert('Copied to clipboard (be careful).'); } catch(e){ alert('Copy failed.'); }
+  });
+
+  // Download ZIP (single-file snapshot)
+  $('downloadZip').addEventListener('click', async () => {
+    // create a zip-like single HTML (this page), user can save
+    const html = '<!doctype html>\\n' + document.documentElement.outerHTML;
+    const blob = new Blob([html], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'password-toolbox-offline.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  // Quick entropy estimate & guess-time (very rough)
+  function entropyBits(charsetSize, length) {
+    return Math.log2(Math.pow(charsetSize, length));
+  }
+  function humanTimeFromSeconds(seconds) {
+    const units = [
+      ['years', 60*60*24*365],
+      ['days', 60*60*24],
+      ['hours', 60*60],
+      ['minutes', 60],
+      ['seconds', 1]
+    ];
+    for (const [name, val] of units) {
+      if (seconds >= val) return Math.round(seconds / val) + ' ' + name;
+    }
+    return Math.round(seconds) + ' seconds';
+  }
+
+$('calcBtn').addEventListener('click', () => {
+  const L = Math.max(1, parseInt($('assumedLen').value) || 12);
+  const cs = parseInt($('charset').value) || 62;
+  const bits = Math.round(entropyBits(cs, L) * 100) / 100;
+
+  // attacker guessing rate assumptions
+  const rates = {
+    'Slow (1,000/s)': 1000,
+    'Fast (1M/s)': 1_000_000,
+    'Offline GPU (10B/s)': 10_000_000_000
+  };
+
+  // search space (might be extremely large)
+  let attempts = Math.pow(cs, L);
+  let attemptsDisplay;
+  if (!Number.isFinite(attempts) || attempts > 1e21) {
+    // too big for exact integer display — use exponential
+    attemptsDisplay = attempts ? attempts.toExponential(3) + ' guesses (approx)' : 'Very large';
+  } else {
+    attemptsDisplay = attempts.toLocaleString() + ' guesses';
+  }
+
+  const lines = [];
+  lines.push(`<strong>Entropy:</strong> ${bits} bits`);
+  lines.push(`<strong>Search space:</strong> ${attemptsDisplay}`);
+
+  for (const k of Object.keys(rates)) {
+    const seconds = attempts / rates[k];
+    lines.push(`<strong>${k}:</strong> ${humanTimeFromSeconds(seconds)}`);
+  }
+
+  lines.push(`<span class="hint">Note: These are rough theoretical estimates for comparison only. Real-world crack times depend on attacker resources, rate-limiting, and other factors.</span>`);
+
+  $('calcResult').innerHTML = lines.join('<br>');
+});
+
+
+  // Example check using zxcvbn
+  function setMeter(pct, color) {
+    $('meterBar').style.width = pct + '%';
+    $('meterBar').style.background = color;
+  }
+  function humanRating(score) {
+    switch(score) {
+      case 0: return ['Very weak', '#ef4444', 12];
+      case 1: return ['Weak', '#f97316', 28];
+      case 2: return ['Fair', '#f59e0b', 45];
+      case 3: return ['Strong', '#10b981', 75];
+      case 4: return ['Excellent', '#06b6d4', 100];
+      default: return ['—','#777',0];
+    }
+  }
+
+  $('checkBtn').addEventListener('click', () => {
+    const val = $('exampleInput').value || '';
+    if (!val) return alert('Enter an example (don’t use real passwords).');
+    const zx = window.zxcvbn ? window.zxcvbn(val) : null;
+    const score = zx ? zx.score : 0;
+    const bits = zx ? Math.round(zx.entropy) : Math.round((val.length * 4));
+    const [label, color, pct] = humanRating(score);
+    $('ratingBadge').textContent = `${label} (score ${score}/4)`;
+    $('entropy').textContent = `Entropy: ${bits} bits`;
+    if (zx && zx.guesses_log10) {
+      const guesses = Math.pow(10, zx.guesses_log10);
+      // assume 1M guesses per second for human-friendly time
+      const secs = guesses / 1e6;
+      $('timeToCrack').textContent = 'Guess-time (approx @1M/s): ' + humanTimeFromSeconds(secs);
+    } else {
+      $('timeToCrack').textContent = 'Guess-time: estimate unavailable';
+    }
+    updateFeedback(zx ? (zx.feedback.suggestions || []).concat(zx.feedback.warning ? [zx.feedback.warning] : []) : ['No zxcvbn available — use longer and less predictable strings.']);
+    setMeter(pct, color);
+  });
+
+  $('clearExample').addEventListener('click', () => {
+    $('exampleInput').value = '';
+    $('ratingBadge').textContent = 'No input';
+    $('entropy').textContent = 'Entropy: — bits';
+    $('timeToCrack').textContent = 'Guess time: —';
+    updateFeedback(['Enter an example and press Check.']);
+    setMeter(0,'');
+  });
+
+  function updateFeedback(arr) {
+    const ul = $('feedbackList'); ul.innerHTML = '';
+    arr.forEach(s => { const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); });
+  }
+
+  // Service worker register
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW register failed', e));
+    });
+  }
+  </script>
+</body>
+</html>
