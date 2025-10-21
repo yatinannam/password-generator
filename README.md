@@ -1,32 +1,56 @@
 # Password Toolbox (Privacy-first PWA)
+**Password Toolbox** is a lightweight, client-side Progressive Web App (PWA) that provides a secure password generator, entropy and guess-time calculator, and an example-based strength demo.  
+It is designed with privacy in mind — everything runs entirely in the browser, and no data is stored or transmitted.
 
-**What**: A client-only password toolbox with a secure generator, entropy/guess-time calculator, and example-based strength demo. Designed to be privacy-friendly: everything runs in the browser; nothing is stored or sent.
+---
 
-**Deploy**: This is a static site — perfect for GitHub Pages.
+## Features
+- Secure password generator with customizable options  
+- Real-time entropy and password strength estimation  
+- Guess-time calculation for brute-force resistance  
+- Example-based strength demonstration for better understanding  
+- Progressive Web App (PWA) support for offline access  
+- Privacy-first design: no tracking, no data collection, no backend
 
-## Quick local test
+---
 
-1. Place files (`index.html`, `manifest.json`, `sw.js`) in a folder.
+## Quick Local Test
+1. Place the following files in a folder:
+```bash
+index.html
+manifest.json
+sw.js
+```
+
 2. Run a simple static server (recommended for local testing):
-   - Python 3: `python -m http.server 8000`
-   - Then open `http://localhost:8000` in your browser.
+```bash
+python -m http.server 8000
+```
 
-## Publish to GitHub Pages
+3. Open your browser and visit:
+```bash
+http://localhost:8000
+```
 
-1. Create a new repository on GitHub (e.g., `password-toolbox`).
-2. Push files to `main`.
-3. In repo Settings → Pages, set Source to `main` branch / root. The site will be available at `https://yourusername.github.io/repo-name/`.
+---
+
+## Project Structure
+```bash
+password-toolbox/
+│
+├── index.html          
+├── manifest.json        
+├── sw.js                
+├── icon-192.png 
+├── icon-512.png 
+└── privacy.md        
+```
+
+---
 
 ## Privacy
+All operations are performed locally within your browser.<br>
+No passwords or user data are ever sent or stored externally.<br>
+For more details, refer to [privacy.md](privacy.md).
 
-See [privacy.md](privacy.md) for full details.
-
-## Notes & improvements
-
-- You can add `icon-192.png` and `icon-512.png` to improve install experience.
-- The app uses zxcvbn (CDN) for human-friendly strength scoring when available.
-- Service worker caches app shell for offline use.
-
-## License
-
-MIT
+---
